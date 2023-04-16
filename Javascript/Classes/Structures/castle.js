@@ -3,16 +3,17 @@ class Castle extends Entity {
 		super();
 		this.selected = false;
 		this.color = '#fcba03';
-
-		this.draw = function () {
-			ctx.fillStyle = this.color;
-			ctx.fillRect(	this.tile.x * TILESIZE, 
-							this.tile.y * TILESIZE, 
-							TILESIZE,
-							TILESIZE);
-		};
-		this.update = function () {
-
-		};
 	}
+
+	draw () {
+		ctx.fillStyle = this.color;
+		ctx.fillRect(	this.tile.x * TILESIZE, 
+						this.tile.y * TILESIZE, 
+						TILESIZE,
+						TILESIZE);
+	};
+
+	update () {
+
+	};
 }

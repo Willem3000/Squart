@@ -1,36 +1,32 @@
 class Unit extends Entity {
-	constructor() {
-		super();
+	constructor(teamColour) {
+		super(teamColour);
 		this.selected = false;
-		this.color = '#000000';
+		this.color = this.teamColour;
+		this.state = UnitState.Idle;
+		console.log(this);
+	}
 
-		this.draw = function () {
-			ctx.fillStyle = this.color;
+	draw() {
+		ctx.fillStyle = this.color;
+		if (!this.isDragged) {
 			ctx.fillRect(	this.tile.x * TILESIZE, 
 							this.tile.y * TILESIZE, 
 							TILESIZE,
 							TILESIZE);
-		};
+		} else {
+			ctx.fillRect(	this.dragX, 
+							this.dragY, 
+							TILESIZE,
+							TILESIZE);
+		}
+	};
 
-		this.update = function () {
-			if (this.selected) {
-				this.color = '#00FF00';
-				if (mouse.click) {
-					this.selected = false;
-					mouse.click = false;
-					this.tile.entity = undefined;
-					tilemap.tiles[mouse.gridX][mouse.gridY].assign(this);
-				}
-			} else {
-				if (mouse.gridX == this.tile.x && mouse.gridY == this.tile.y) {
-					this.color = '#FF0000';
-					if (mouse.click) {
-						this.selected = true;
-					}
-				} else {
-					this.color = '#000000'
-				}
-			}
-		};
-	}
+	update() {
+		if (this.tile.selected) {
+			this.color = '#00FF00';
+		} else {
+			this.color = this.teamColour
+		}
+	};
 }
