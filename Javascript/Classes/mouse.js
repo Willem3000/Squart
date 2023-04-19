@@ -1,22 +1,40 @@
 class Mouse {
 	constructor() {
+        // Screenpos
         this.x = undefined;
         this.y = undefined;
-        this.gridX = undefined;
-        this.gridY = undefined;
 
+        // Screenpos on starting drag
         this.startDragX = undefined;
         this.startDragY = undefined;
+
+        // World adjusted grid coords
+        this.gridX = 0;
+        this.gridY = 0;
+
+        // World position on starting drag
+        this.worldStartDragX = 0;
+        this.worldStartDragY = 0;
+
+        // Current hovered tile on starting drag
         this.startDragTile = undefined;
-        this.isDragging = false;
+
         this.dragEntity = undefined;
+        this.isDragging = false;
+
+        // Amount of drag to disable click
         this.dragDelta = 6;
     }
 
     startDrag() {
+        this.isDragging = true;
+
         this.startDragX = this.x;
         this.startDragY = this.y;
-        this.startDragTile = tilemap.tiles[this.gridX][this.gridY]
+        this.worldStartDragX = worldX;
+        this.worldStartDragY = worldY;
+        this.updateGridCoords();
+        this.startDragTile = tilemap.tiles[this.gridX][this.gridY];
 
         this.grabEntity();
     }
@@ -25,22 +43,24 @@ class Mouse {
         const diffX = Math.abs(this.x - this.startDragX);
         const diffY = Math.abs(this.y - this.startDragY);
 
-        let tile = tilemap.tiles[mouse.gridX][mouse.gridY];
+        let tile = tilemap.tiles[this.gridX][this.gridY];
   
         // On click
         if (diffX < this.dragDelta && diffY < this.dragDelta) {
-            if (!tile.selected) {
+            if (!tile.isSelected) {
                 tilemap.deselectAll();
                 tile.select();
             }
         }
 
         this.releaseEntity(tile);
+
+        this.isDragging = false;
     }
 
     grabEntity() {
-        let tile = tilemap.tiles[mouse.gridX][mouse.gridY];
-        if (tile.selected && tile.entity) {
+        let tile = tilemap.tiles[this.gridX][this.gridY];
+        if (tile.isSelected && tile.entity) {
             if (tile.entity instanceof Unit) {
                 this.dragEntity = tile.entity;
             }
@@ -49,7 +69,7 @@ class Mouse {
 
     releaseEntity(tile) {
         if (this.dragEntity) {
-            if (tile.entity == undefined && tile.state == TileState.Walkable) {
+            if (tile.state == TileState.Walkable) {
                 tile.assign(this.dragEntity);
             } else {
                 this.startDragTile.assign(this.dragEntity);
@@ -60,20 +80,31 @@ class Mouse {
     }
 
     update() {
-        this.gridX = Math.floor((this.x) / TILESIZE)
-        this.gridY = Math.floor((this.y) / TILESIZE)
+        this.updateGridCoords();
 
         if (this.dragEntity != undefined) {
-            if (this.dragEntity.tile.selected) {
+            if (this.dragEntity.tile.isSelected) {
                 this.dragEntity.isDragged = true;
-                this.dragEntity.dragX = mouse.x - TILESIZE / 2;
-                this.dragEntity.dragY = mouse.y - TILESIZE / 2;
+                this.dragEntity.dragX = mouse.x - TILESIZE / 2 - worldX;
+                this.dragEntity.dragY = mouse.y - TILESIZE / 2 - worldY;
             }
+        } else if (this.isDragging) {
+            worldX = Math.min(0,this.worldStartDragX + this.x - this.startDragX);
+            worldY = Math.min(0,this.worldStartDragY + this.y - this.startDragY);
+
         }
     };
 
     draw() {
         ctx.fillStyle = "#c9f3ff66";
-        ctx.fillRect(this.gridX * TILESIZE, this.gridY * TILESIZE, TILESIZE, TILESIZE);
+        ctx.beginPath();
+        ctx.roundRect(this.gridX * TILESIZE + worldX, 
+                      this.gridY * TILESIZE + worldY, TILESIZE, TILESIZE, 10);
+        ctx.fill();
     };
+
+    updateGridCoords() {
+        this.gridX = Math.floor((this.x - worldX) / TILESIZE);
+        this.gridY = Math.floor((this.y - worldY) / TILESIZE);
+    }
 }

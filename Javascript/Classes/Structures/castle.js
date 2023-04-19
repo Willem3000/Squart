@@ -1,16 +1,12 @@
 class Castle extends Entity {
 	constructor() {
 		super();
-		this.selected = false;
-		this.color = '#fcba03';
+		this.isSelected = false;
+		this.colour = '#fcba03';
 	}
 
 	draw () {
-		ctx.fillStyle = this.color;
-		ctx.fillRect(	this.tile.x * TILESIZE, 
-						this.tile.y * TILESIZE, 
-						TILESIZE,
-						TILESIZE);
+		roundRect(this.tile.x * TILESIZE, this.tile.y * TILESIZE, 10, this.colour); 
 	};
 
 	update () {

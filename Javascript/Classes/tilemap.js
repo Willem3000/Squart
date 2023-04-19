@@ -3,7 +3,7 @@ class Tile {
 		this.x = x;
 		this.y = y;
         this.entity = undefined;
-        this.selected = false;
+        this.isSelected = false;
         this.state = TileState.Neutral;
     }
 
@@ -27,15 +27,13 @@ class Tile {
             this.entity.draw();
         }
 
-        ctx.fillStyle = this.state;
-        ctx.fillRect(	this.x * TILESIZE, 
-                        this.y * TILESIZE, 
-                        TILESIZE,
-                        TILESIZE);
+        if (this.state != TileState.Neutral) {
+            roundRect(this.x * TILESIZE,this.y * TILESIZE, 10, this.state);
+        }
     };
 
     select() {
-        this.selected = true;
+        this.isSelected = true;
         
         if (this.entity instanceof Unit) {
             this.entity.state = UnitState.WalkSelect;
@@ -44,7 +42,7 @@ class Tile {
     };
 
     deselect() {
-        this.selected = false;
+        this.isSelected = false;
 
         if (this.entity instanceof Unit) {
             this.entity.state = UnitState.Idle;
@@ -53,7 +51,6 @@ class Tile {
     };
 
     assign(entity) {
-
         if (entity.tile != undefined) {
             entity.tile.unassign();
         }
@@ -69,8 +66,8 @@ class Tile {
     }
 
     setWalkTiles() {
+        tilemap.tiles[this.x][this.y].state = TileState.Walkable;
         for (let tile of this.getNeighbours()) {
-            console.log(this.getNeighbours());
             if (!tile.entity) {
                 tile.state = TileState.Walkable;
             }
@@ -87,12 +84,9 @@ class Tile {
 
 class Tilemap {
 	constructor(w, h) {
-        this.x = 0;
-        this.y = 0;
 		this.w = w;
 		this.h = h;
         this.tiles = undefined;
-		this.bgc = '#000000';
 
         // Initialize tiles
         this.tiles = new Array(this.w);

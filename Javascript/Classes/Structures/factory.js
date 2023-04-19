@@ -1,11 +1,11 @@
 class Factory extends Entity {
 	constructor() {
 		super();
-		this.selected = false;
-		this.color = '#fcba03';
+		this.isSelected = false;
+		this.colour = '#fcba03';
 
 		this.draw = function () {
-			ctx.fillStyle = this.color;
+			ctx.fillStyle = this.colour;
 			ctx.fillRect(	this.tile.x * TILESIZE, 
 							this.tile.y * TILESIZE, 
 							TILESIZE,

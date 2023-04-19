@@ -19,31 +19,58 @@ const UnitState = {
 	Merging: 5,
 	Fusing: 6,
 }
+const ISMOBILE = window.navigator.userAgent.match(/Android/i)
+				|| window.navigator.userAgent.match(/webOS/i)
+				|| window.navigator.userAgent.match(/iPhone/i)
+				|| window.navigator.userAgent.match(/iPad/i)
+				|| window.navigator.userAgent.match(/iPod/i)
+				|| window.navigator.userAgent.match(/BlackBerry/i)
+				|| window.navigator.userAgent.match(/Windows Phone/i);
+				
+var worldX = 0;
+var worldY = 0;
+var activeEntity = undefined;
 
-worldX = 0;
-worldY = 0;
-activeEntity = undefined;
+var tilemap = new Tilemap(100, 100);
+var mouse = new Mouse();
 
-tilemap = new Tilemap(50, 50);
-mouse = new Mouse();
+if (ISMOBILE) {
+	window.addEventListener('touchmove',function(event){
+		event.preventDefault();
+		event.stopPropagation();
+		touch = event.changedTouches[0];
+		mouse.x = touch.pageX;
+		mouse.y = touch.pageY;
+	}, {passive:false});
 
-window.addEventListener('mousemove',function(event){
-    mouse.x = event.x;
-    mouse.y = event.y;
-});
+	window.addEventListener('touchstart', function(event){
+		touch = event.changedTouches[0];
+		mouse.x = touch.pageX;
+		mouse.y = touch.pageY;
+		mouse.startDrag();
+	});
 
-window.addEventListener('mousedown', function(){
-	mouse.startDrag();
-});
+	window.addEventListener('touchend', function(event){
+		mouse.endDrag();
+	});
+} else {
+	window.addEventListener('mousemove',function(event){
+		mouse.x = event.x;
+		mouse.y = event.y;
+	});
 
-window.addEventListener('mouseup', function(){
-	mouse.endDrag();
-});
+	window.addEventListener('mousedown', function(){
+		mouse.startDrag();
+	});
+
+	window.addEventListener('mouseup', function(){
+		mouse.endDrag();
+	});
+}
 
 window.addEventListener('resize', function(){
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
-	init();
 });
 
 // Helper functions
@@ -68,9 +95,8 @@ function update(){
 function draw() {
 	requestAnimationFrame(draw);
 	update();
-	ctx.clearRect(0,0,innerWidth,innerHeight);
-	ctx.fillStyle = "#ffebbf";
-	ctx.fillRect(0, 0, innerWidth, innerHeight);
+
+	drawBg("#ffebbf");
 	tilemap.draw();
 	mouse.draw();
 }
