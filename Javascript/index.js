@@ -3,7 +3,19 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// CONSTS
 const TILESIZE = 50;
+const GRIDCOLOUR = "#edd9ad"
+const BGCOLOUR = "#ffebbf"
+const ISMOBILE = window.navigator.userAgent.match(/Android/i)
+				|| window.navigator.userAgent.match(/webOS/i)
+				|| window.navigator.userAgent.match(/iPhone/i)
+				|| window.navigator.userAgent.match(/iPad/i)
+				|| window.navigator.userAgent.match(/iPod/i)
+				|| window.navigator.userAgent.match(/BlackBerry/i)
+				|| window.navigator.userAgent.match(/Windows Phone/i);
+
+// Enum
 const TileState = {
 	Neutral: "#00000000",
 	Attackable: "#FF000044",
@@ -19,19 +31,13 @@ const UnitState = {
 	Merging: 5,
 	Fusing: 6,
 }
-const ISMOBILE = window.navigator.userAgent.match(/Android/i)
-				|| window.navigator.userAgent.match(/webOS/i)
-				|| window.navigator.userAgent.match(/iPhone/i)
-				|| window.navigator.userAgent.match(/iPad/i)
-				|| window.navigator.userAgent.match(/iPod/i)
-				|| window.navigator.userAgent.match(/BlackBerry/i)
-				|| window.navigator.userAgent.match(/Windows Phone/i);
-				
+	
+// Global vars
 var worldX = 0;
 var worldY = 0;
 var activeEntity = undefined;
 
-var tilemap = new Tilemap(100, 100);
+var tilemap = new Tilemap(30, 30);
 var mouse = new Mouse();
 
 if (ISMOBILE) {
@@ -99,6 +105,7 @@ function draw() {
 	drawBg("#ffebbf");
 	tilemap.draw();
 	mouse.draw();
+	drawText("Testing this epic tool\nTest",5,20, 20);
 }
 
 init();

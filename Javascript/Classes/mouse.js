@@ -85,26 +85,30 @@ class Mouse {
         if (this.dragEntity != undefined) {
             if (this.dragEntity.tile.isSelected) {
                 this.dragEntity.isDragged = true;
-                this.dragEntity.dragX = mouse.x - TILESIZE / 2 - worldX;
-                this.dragEntity.dragY = mouse.y - TILESIZE / 2 - worldY;
+                this.dragEntity.dragX = mouse.x - TILESIZE / 2 + worldX;
+                this.dragEntity.dragY = mouse.y - TILESIZE / 2 + worldY;
             }
         } else if (this.isDragging) {
-            worldX = Math.min(0,this.worldStartDragX + this.x - this.startDragX);
-            worldY = Math.min(0,this.worldStartDragY + this.y - this.startDragY);
+            worldX = Math.max(0,this.worldStartDragX + this.startDragX - this.x);
+            worldY = Math.max(0,this.worldStartDragY + this.startDragY - this.y);
 
         }
     };
 
-    draw() {
-        ctx.fillStyle = "#c9f3ff66";
+    draw_hover_tile(colour) {
+        ctx.fillStyle = colour;
         ctx.beginPath();
-        ctx.roundRect(this.gridX * TILESIZE + worldX, 
-                      this.gridY * TILESIZE + worldY, TILESIZE, TILESIZE, 10);
+        ctx.roundRect(this.gridX * TILESIZE - worldX, 
+                      this.gridY * TILESIZE - worldY, TILESIZE, TILESIZE, 10);
         ctx.fill();
+    }
+
+    draw() {
+        this.draw_hover_tile("#c9f3ff66")
     };
 
     updateGridCoords() {
-        this.gridX = Math.floor((this.x - worldX) / TILESIZE);
-        this.gridY = Math.floor((this.y - worldY) / TILESIZE);
+        this.gridX = Math.floor((this.x + worldX) / TILESIZE);
+        this.gridY = Math.floor((this.y + worldY) / TILESIZE);
     }
 }

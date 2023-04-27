@@ -129,14 +129,15 @@ class Tilemap {
             }
         }
 
-        /*for (var x = 0; x <= ctx.width; x += TILESIZE) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, h);
+        ctx.strokeStyle = GRIDCOLOUR;
+        for (var x = 0; x <= this.w; x++) {
+            ctx.moveTo(x * TILESIZE - worldX, 0);
+            ctx.lineTo(x * TILESIZE - worldX, this.h * TILESIZE);
         }
-        for (var y = 0; y <= this.h; y += TILESIZE) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(this.w, y);
+        for (var y = 0; y <= this.h; y++) {
+            ctx.moveTo(0, y * TILESIZE - worldY);
+            ctx.lineTo(this.w * TILESIZE, y * TILESIZE - worldY);
         }
-        ctx.stroke();*/
+        ctx.stroke();
     };
 }
