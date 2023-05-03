@@ -3,22 +3,83 @@ class Tile {
 		this.x = x;
 		this.y = y;
         this.entity = undefined;
-        this.isSelected = false;
         this.state = TileState.Neutral;
+
+        this.stateMachine = {
+			self: undefined,
+			transitions: {
+				[TileState.Neutral]: {
+					onEnter() {
+
+					},
+					onExit() {
+						
+					},
+                    select() {
+                        if (this.self.entity instanceof Unit) {
+                            if (activeEntity && activeEntity != this.self.entity) {
+                                activeEntity.deselect();
+                            }
+                            this.self.entity.select();
+                        } else {
+                            if (activeEntity) {
+                                activeEntity.deselect();
+                            }
+                        }
+                    }
+				},
+				[TileState.Walkable]: {
+					onEnter() {
+                        this.self.setActive();
+						
+					},
+					onExit() {
+						
+					},
+                    select() {
+                        this.self.assignEntity(activeEntity);
+						activeEntity.setState(UnitState.Walking);
+                    }
+				},
+				[TileState.Attackable]: {
+					onEnter() {
+                        this.self.setActive();
+						
+					},
+					onExit() {
+						
+					},
+                    select() {
+                        this.self.unassignEntity();
+                        activeEntity.setState(UnitState.HasActed);
+                    }
+				},
+				[TileState.Mergable]: {
+					onEnter() {
+                        this.self.setActive();
+						
+					},
+					onExit() {
+						
+					}
+				},
+			},
+			dispatch: function(actionName, parameterList=[]) {
+				const action = this.transitions[this.self.state][actionName]
+
+				if (action) {
+					action.apply(this, parameterList);
+				} else {
+					console.log('ERROR: ' + action + ' invalid action');
+				}
+			}
+		};
+		this.stateMachine['self'] = this;
     }
 
     update() {
         if (this.entity) {
             this.entity.update();
-        }
-
-        switch(this.state) {
-            case TileState.Neutral:
-                break;
-            case TileState.Attackable:
-                break;
-            case TileState.Mergable:
-                break;
         }
     };
 
@@ -33,43 +94,62 @@ class Tile {
     };
 
     select() {
-        this.isSelected = true;
-        
-        if (this.entity instanceof Unit) {
-            this.entity.state = UnitState.WalkSelect;
-            this.setWalkTiles();
-        }
+        this.stateMachine.dispatch('select');
     };
 
     deselect() {
-        this.isSelected = false;
-
         if (this.entity instanceof Unit) {
-            this.entity.state = UnitState.Idle;
+            this.entity.deselect();
         }
-        tilemap.resetTileStates();
     };
 
-    assign(entity) {
+    setActive() {
+        tilemap.activeTiles.push(this);
+    }
+
+    setState(state) {
+        this.stateMachine.dispatch('onExit');
+        this.state = state;
+        this.stateMachine.dispatch('onEnter');
+    }
+
+    resetState() {
+        this.stateMachine.dispatch('onExit');
+        this.state = TileState.Neutral;
+        this.stateMachine.dispatch('onEnter');
+    }
+
+    assignEntity(entity) {
         if (entity.tile != undefined) {
-            entity.tile.unassign();
+            entity.tile.unassignEntity();
         }
         
         entity.tile = this;
         this.entity = entity;
     }
 
-    unassign() {
+    unassignEntity() {
         this.entity.tile = undefined;
         this.entity = undefined;
-        tilemap.resetTileStates();
     }
 
     setWalkTiles() {
-        tilemap.tiles[this.x][this.y].state = TileState.Walkable;
+        tilemap.tiles[this.x][this.y].setState(TileState.Walkable);
         for (let tile of this.getNeighbours()) {
             if (!tile.entity) {
-                tile.state = TileState.Walkable;
+                tile.setState(TileState.Walkable);
+            }
+        }
+    }
+
+    setActionTiles() {
+        for (let tile of this.getNeighbours()) {
+            if (tile.entity) {
+                if (tile.entity.teamColour == activeEntity.teamColour) {
+                    tile.setState(TileState.Mergable);
+                } else {
+                    tile.setState(TileState.Attackable);
+                }
             }
         }
     }
@@ -86,7 +166,8 @@ class Tilemap {
 	constructor(w, h) {
 		this.w = w;
 		this.h = h;
-        this.tiles = undefined;
+        this.tiles = [];
+        this.activeTiles = [];
 
         // Initialize tiles
         this.tiles = new Array(this.w);
@@ -107,11 +188,10 @@ class Tilemap {
     }
 
     resetTileStates() {
-        for (let x = 0; x < this.w; x++) {
-            for (let y = 0; y < this.h; y++) {
-                this.tiles[x][y].state = TileState.Neutral;
-            }
+        for (let tile of this.activeTiles) {
+            tile.resetState();
         }
+        this.activeTiles = [];
     }
 
     update() {
@@ -122,13 +202,7 @@ class Tilemap {
         }
     };
 
-    draw() {
-        for (let x = 0; x < this.w; x++) {
-            for (let y = 0; y < this.h; y++) {
-                this.tiles[x][y].draw();
-            }
-        }
-
+    drawGrid() {
         ctx.strokeStyle = GRIDCOLOUR;
         for (var x = 0; x <= this.w; x++) {
             ctx.moveTo(x * TILESIZE - worldX, 0);
@@ -139,5 +213,15 @@ class Tilemap {
             ctx.lineTo(this.w * TILESIZE, y * TILESIZE - worldY);
         }
         ctx.stroke();
+    }
+
+    draw() {
+        this.drawGrid();
+
+        for (let x = 0; x < this.w; x++) {
+            for (let y = 0; y < this.h; y++) {
+                this.tiles[x][y].draw();
+            }
+        }
     };
 }

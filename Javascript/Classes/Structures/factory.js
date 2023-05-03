@@ -1,7 +1,6 @@
 class Factory extends Entity {
 	constructor() {
 		super();
-		this.isSelected = false;
 		this.colour = '#fcba03';
 
 		this.draw = function () {

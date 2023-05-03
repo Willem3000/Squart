@@ -20,16 +20,18 @@ const TileState = {
 	Neutral: "#00000000",
 	Attackable: "#FF000044",
 	Mergable: "#0000FF44",
-	Walkable: "#00FF0044"
+	Walkable: "#00FF0044",
 }
 const UnitState = {
-	Idle: 0,
-	WalkSelect: 1,
-	Walking: 2,
-	ActionSelect: 3,
-	Attacking: 4,
-	Merging: 5,
-	Fusing: 6,
+	Idle: 'Idle',
+	WalkSelect: 'WalkSelect',
+	Walking: 'Walking',
+	HasWalked: 'HasWalked',
+	ActionSelect: 'ActionSelect',
+	Attacking: 'Attacking',
+	Merging: 'Merging',
+	Fusing: 'Fusing',
+	HasActed: 'HasActed',
 }
 	
 // Global vars
@@ -37,7 +39,7 @@ var worldX = 0;
 var worldY = 0;
 var activeEntity = undefined;
 
-var tilemap = new Tilemap(30, 30);
+var tilemap = new Tilemap(100, 100);
 var mouse = new Mouse();
 
 if (ISMOBILE) {
@@ -53,11 +55,11 @@ if (ISMOBILE) {
 		touch = event.changedTouches[0];
 		mouse.x = touch.pageX;
 		mouse.y = touch.pageY;
-		mouse.startDrag();
+		mouse.startDragging();
 	});
 
 	window.addEventListener('touchend', function(event){
-		mouse.endDrag();
+		mouse.endDragging();
 	});
 } else {
 	window.addEventListener('mousemove',function(event){
@@ -66,11 +68,11 @@ if (ISMOBILE) {
 	});
 
 	window.addEventListener('mousedown', function(){
-		mouse.startDrag();
+		mouse.startDragging();
 	});
 
 	window.addEventListener('mouseup', function(){
-		mouse.endDrag();
+		mouse.endDragging();
 	});
 }
 
@@ -81,11 +83,11 @@ window.addEventListener('resize', function(){
 
 // Helper functions
 function spawn(entity, x, y) {
-	tilemap.tiles[x][y].assign(entity);
+	tilemap.tiles[x][y].assignEntity(entity);
 }
 
 function init(){
-	spawn(new Unit("#eb343a"),6,6);
+	spawn(new Unit("#eb343a"),11,5);
 	spawn(new Unit("#eb343a"),10,6);
 	spawn(new Unit("#343deb"),12,6);
 	spawn(new Unit("#343deb"),14,6);

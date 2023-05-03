@@ -1,7 +1,6 @@
 class Castle extends Entity {
 	constructor() {
 		super();
-		this.isSelected = false;
 		this.colour = '#fcba03';
 	}
 

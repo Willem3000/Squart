@@ -1,4 +1,8 @@
+/** Class handling mouse input. */
 class Mouse {
+    /**
+     * Create a mouse.
+     */
 	constructor() {
         // Screenpos
         this.x = undefined;
@@ -19,14 +23,14 @@ class Mouse {
         // Current hovered tile on starting drag
         this.startDragTile = undefined;
 
-        this.dragEntity = undefined;
+        this.draggedEntity = undefined;
         this.isDragging = false;
 
         // Amount of drag to disable click
         this.dragDelta = 6;
     }
 
-    startDrag() {
+    startDragging() {
         this.isDragging = true;
 
         this.startDragX = this.x;
@@ -39,7 +43,7 @@ class Mouse {
         this.grabEntity();
     }
     
-    endDrag() {
+    endDragging() {
         const diffX = Math.abs(this.x - this.startDragX);
         const diffY = Math.abs(this.y - this.startDragY);
 
@@ -47,55 +51,31 @@ class Mouse {
   
         // On click
         if (diffX < this.dragDelta && diffY < this.dragDelta) {
-            if (!tile.isSelected) {
-                tilemap.deselectAll();
-                tile.select();
-            }
+            tile.select();
         }
 
         this.releaseEntity(tile);
-
         this.isDragging = false;
     }
 
     grabEntity() {
-        let tile = tilemap.tiles[this.gridX][this.gridY];
-        if (tile.isSelected && tile.entity) {
-            if (tile.entity instanceof Unit) {
-                this.dragEntity = tile.entity;
+        let tile = this.startDragTile;
+        if (tile.entity) {
+            if (tile.entity instanceof Unit && tile.entity.getState() == UnitState.WalkSelect) {
+                this.draggedEntity = tile.entity;
             }
         }
     }
 
     releaseEntity(tile) {
-        if (this.dragEntity) {
-            if (tile.state == TileState.Walkable) {
-                tile.assign(this.dragEntity);
-            } else {
-                this.startDragTile.assign(this.dragEntity);
-            }
-            this.dragEntity.isDragged = false;
-            this.dragEntity = undefined;
+        if (this.draggedEntity) {
+            tile.select();
+            this.draggedEntity.isDragged = false;
+            this.draggedEntity = undefined;
         }
     }
 
-    update() {
-        this.updateGridCoords();
-
-        if (this.dragEntity != undefined) {
-            if (this.dragEntity.tile.isSelected) {
-                this.dragEntity.isDragged = true;
-                this.dragEntity.dragX = mouse.x - TILESIZE / 2 + worldX;
-                this.dragEntity.dragY = mouse.y - TILESIZE / 2 + worldY;
-            }
-        } else if (this.isDragging) {
-            worldX = Math.max(0,this.worldStartDragX + this.startDragX - this.x);
-            worldY = Math.max(0,this.worldStartDragY + this.startDragY - this.y);
-
-        }
-    };
-
-    draw_hover_tile(colour) {
+    drawHoverTile(colour) {
         ctx.fillStyle = colour;
         ctx.beginPath();
         ctx.roundRect(this.gridX * TILESIZE - worldX, 
@@ -103,12 +83,35 @@ class Mouse {
         ctx.fill();
     }
 
-    draw() {
-        this.draw_hover_tile("#c9f3ff66")
-    };
-
     updateGridCoords() {
         this.gridX = Math.floor((this.x + worldX) / TILESIZE);
         this.gridY = Math.floor((this.y + worldY) / TILESIZE);
     }
+
+    dragEntity() {
+        this.draggedEntity.isDragged = true;
+        let xOffset = worldX + this.startDragX - this.startDragTile.x * TILESIZE - TILESIZE / 2;
+        let yOffset = worldY + this.startDragY - this.startDragTile.y * TILESIZE - TILESIZE / 2;
+        this.draggedEntity.dragX = mouse.x - TILESIZE / 2 + worldX - xOffset;
+        this.draggedEntity.dragY = mouse.y - TILESIZE / 2 + worldY - yOffset;
+    }
+
+    dragWorld() {
+        worldX = Math.max(0,this.worldStartDragX + this.startDragX - this.x);
+        worldY = Math.max(0,this.worldStartDragY + this.startDragY - this.y);
+    }
+
+    update() {
+        this.updateGridCoords();
+
+        if (this.draggedEntity != undefined) {
+            this.dragEntity();
+        } else if (this.isDragging) {
+            this.dragWorld();
+        }
+    };
+
+    draw() {
+        this.drawHoverTile("#c9f3ff66")
+    };
 }
